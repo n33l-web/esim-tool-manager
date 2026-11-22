@@ -1,0 +1,40 @@
+{
+    "ngspice": {
+        "display_name": "Ngspice",
+        "executable": "ngspice",
+        "version_args": [
+            "-v"
+        ],
+        "packages": {
+            "linux": {
+                "manager": "apt",
+                "package_id": "ngspice"
+            },
+            "macos": {
+                "manager": "brew",
+                "package_id": "ngspice"
+            }
+        }
+    },
+    "kicad": {
+        "display_name": "KiCad",
+        "executable": "kicad-cli",
+        "version_args": [
+            "version"
+        ],
+        "packages": {
+            "windows": {
+                "manager": "winget",
+                "package_id": "KiCad.KiCad"
+            },
+            "linux": {
+                "manager": "apt",
+                "package_id": "kicad"
+            },
+            "macos": {
+                "manager": "brew",
+                "package_id": "kicad"
+            }
+        }
+    }
+}

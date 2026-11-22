@@ -1,98 +1,100 @@
+from core.manager import (
+    load_tools,
+    check_tool,
+    install_tool,
+    check_for_updates,
+    upgrade_tool
+)
 
-import json
-
-from core.detector import check_tool
-from core.installer import install_tool
+from core.platform_utils import detect_os, detect_package_manager
 
 
-# Load tool information
-with open("config/tools.json") as file:
-    TOOLS = json.load(file)
+def display_tools(tools):
+    print("\nAvailable tools:")
+
+    for index, (key, tool) in enumerate(tools.items(), start=1):
+        print(f"{index}. {tool['display_name']} ({key})")
 
 
-def check_all_tools():
+def select_tool(tools):
+    display_tools(tools)
 
-    for name, info in TOOLS.items():
+    choice = input("\nEnter tool name: ").strip().lower()
 
-        result = check_tool(
-            info["executable"],
-            info["version_args"]
-        )
+    if choice not in tools:
+        print("Invalid tool name.")
+        return None
 
-        print("\nTool:", name)
+    return choice
 
-        if result["installed"]:
-            print("Status: Installed")
-            print("Version:", result["version"])
-            print("Path:", result["path"])
+
+def main():
+    try:
+        tools = load_tools()
+    except Exception as error:
+        print("Could not load tool configuration:", error)
+        return
+
+    while True:
+        print("\n================================")
+        print("       eSim AUTOMATED TOOL MANAGER")
+        print("================================")
+        print("Operating System:", detect_os())
+        print("Available Package Manager:", detect_package_manager())
+        print("--------------------------------")
+        print("1. List available tools")
+        print("2. Check installed tool and version")
+        print("3. Install a tool")
+        print("4. Check for updates")
+        print("5. Upgrade a tool")
+        print("6. Exit")
+
+        choice = input("\nChoose an option: ").strip()
+
+        if choice == "1":
+            display_tools(tools)
+
+        elif choice == "2":
+            name = select_tool(tools)
+
+            if name:
+                result = check_tool(name)
+
+                print("\nTool:", result["name"])
+                print("Installed:", result["installed"])
+                print("Path:", result["path"])
+                print("Version:", result["version"])
+
+        elif choice == "3":
+            name = select_tool(tools)
+
+            if name:
+                install_tool(name)
+
+        elif choice == "4":
+            name = select_tool(tools)
+
+            if name:
+                result = check_for_updates(name)
+
+                print("\nUpdate check:")
+                print("Supported:", result["supported"])
+                print("Update available:", result["update_available"])
+                print("Details:", result["message"])
+
+        elif choice == "5":
+            name = select_tool(tools)
+
+            if name:
+                upgrade_tool(name)
+
+        elif choice == "6":
+            print("Exiting eSim Tool Manager.")
+            break
+
         else:
-            print("Status: Missing")
-
-
-def install_selected_tool(name):
-
-    if name not in TOOLS:
-        print("Unknown tool:", name)
-        return
-
-    info = TOOLS[name]
-
-    # Check if already installed
-    result = check_tool(
-        info["executable"],
-        info["version_args"]
-    )
-
-    if result["installed"]:
-        print(name, "is already installed.")
-        print("Version:", result["version"])
-        return
-
-    # Ask permission
-    choice = input(
-        "Do you want to install " + name + "? (y/n): "
-    )
-
-    if choice.lower() != "y":
-        print("Installation cancelled.")
-        return
-
-    success = install_tool(name, info)
-
-    if success:
-
-        # Verify installation
-        result = check_tool(
-            info["executable"],
-            info["version_args"]
-        )
-
-        if result["installed"]:
-            print("Installation verified!")
-            print("Version:", result["version"])
-        else:
-            print("Installation ran, but verification failed.")
+            print("Invalid choice. Please try again.")
 
 
 if __name__ == "__main__":
-
-    print("================================")
-    print("       eSim TOOL MANAGER")
-    print("================================")
-
-    print("1. Check installed tools")
-    print("2. Install a tool")
-
-    choice = input("\nEnter your choice: ")
-
-    if choice == "1":
-        check_all_tools()
-
-    elif choice == "2":
-
-        name = input("Enter tool name: ").lower()
-
-        install_selected_tool(name)
-
-    else:
-        print("Invalid choice.")
+    main()
